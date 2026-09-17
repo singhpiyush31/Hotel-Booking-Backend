@@ -28,3 +28,24 @@ exports.userAuth = async (req, res, next) => {
         });
     }
 };
+
+exports.isOwner = (req, res, next) => {
+    if (req.user.role !== "Owner") {
+        return res.status(403).json({ message: "Only owners are allowed!" });
+    }
+    next();
+};
+
+exports.isAdmin = (req, res, next) => {
+    if (req.user.role !== "Admin") {
+        return res.status(403).json({ message: "Only admins are allowed!" });
+    }
+    next();
+};
+
+exports.isOwnerOrAdmin = (req,res,next) => {
+    if(req.user.role !== "Admin" && req.user.role !== "Owner") {
+        return res.status(403).json({ message: "Only Admin and Owner are allowed!" });
+    }
+    next();
+}
