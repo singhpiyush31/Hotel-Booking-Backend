@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
-
 const User = require("../models/user");
+const jwt = require("jsonwebtoken");
+
 const { sendEmail } = require("../utils/sendEmail");
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -22,7 +23,7 @@ exports.register = async (req, res) => {
         const existEmail = await User.findOne({ email: email });
 
         if (existEmail) {
-            return res.status(404).json({ message: "Email already exist!" });
+            return res.status(400).json({ message: "Email already exist!" });
         }
 
         let finalRole = "User";
@@ -65,6 +66,46 @@ exports.register = async (req, res) => {
     } catch (err) {
         res.status(500).json({
             message: "Internal Server Error!",
+            error: err.message,
+        });
+    }
+};
+
+exports.login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res
+                .status(400)
+                .json({ message: "All fields are required!" });
+        }
+
+        const user = await User.findOne({ email: email });
+
+        if (!user) {
+            return res.status(404).json({ message: "Invalid Credentials" });
+        }
+
+        const validPassword = await bcrypt.compare(password, user.password);
+
+        if (!validPassword) {
+            return res.status(400).json({ message: "Invalid Credentials" });
+        }
+
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+            expiresIn: "7d",
+        });
+
+        res.cookie("token", token, {
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            httpOnly: true,
+        });
+
+        res.status(200).json({ message: "Logged-In Successfully!" });
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal Sever Error!",
             error: err.message,
         });
     }
