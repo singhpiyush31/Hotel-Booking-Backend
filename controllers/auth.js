@@ -84,7 +84,7 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ email: email });
 
         if (!user) {
-            return res.status(404).json({ message: "Invalid Credentials" });
+            return res.status(400).json({ message: "Invalid Credentials" });
         }
 
         const validPassword = await bcrypt.compare(password, user.password);
@@ -105,7 +105,7 @@ exports.login = async (req, res) => {
         res.status(200).json({ message: "Logged-In Successfully!" });
     } catch (err) {
         res.status(500).json({
-            message: "Internal Sever Error!",
+            message: "Internal Server Error!",
             error: err.message,
         });
     }
@@ -123,7 +123,7 @@ exports.logout = async (req, res) => {
     }
 };
 
-exports.me = async (req, res) => {
+exports.my = async (req, res) => {
     const user = {
         _id: req.user._id,
         name: req.user.name,
