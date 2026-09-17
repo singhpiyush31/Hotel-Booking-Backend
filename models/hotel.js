@@ -6,7 +6,7 @@ const hotelSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true,
-            minLength: 5,
+            minLength: 2,
             maxLength: 50,
         },
         description: {
@@ -29,7 +29,7 @@ const hotelSchema = new mongoose.Schema(
             type: Boolean,
             default: true,
         },
-        image: {
+        images: {
             type: [String],
             default: [],
         },
@@ -52,7 +52,7 @@ const hotelSchema = new mongoose.Schema(
         rejectionReason: {
             type: String,
             trim: true,
-            minLength: 50,
+            minLength: 10,
             maxLength: 500,
         },
     },
