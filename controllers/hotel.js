@@ -130,3 +130,26 @@ exports.getMyHotels = async (req, res) => {
         });
     }
 };
+
+exports.getHotelById = async (req, res) => {
+    try {
+        const hotelId = req.params.hotelId;
+
+        const hotel = await Hotel.findOne({
+            _id: hotelId,
+            status: "Approved",
+            isActive: true,
+        }).select("-rejectionReason -status -owner -isActive");
+
+        if (!hotel) {
+            return res.status(404).json({ message: "Hotel not found!" });
+        }
+
+        res.status(200).json({ message: "Hotel: ", hotel });
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal Server Error!",
+            error: err.message,
+        });
+    }
+};
