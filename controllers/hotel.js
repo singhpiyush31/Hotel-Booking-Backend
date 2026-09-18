@@ -153,3 +153,30 @@ exports.getHotelById = async (req, res) => {
         });
     }
 };
+
+exports.updateHotel = async (req, res) => {
+    try {
+        const { name, description, address, images, city, amenities } =
+            req.body;
+
+        const hotelId = req.params.hotelId;
+
+        const loggedInUser = req.user._id;
+
+        const hotel = await Hotel.findOneAndUpdate(
+            { _id: hotelId, owner: loggedInUser },
+            { name, description, address, images, city, amenities },
+            { returnDocument: "after", runValidators: true },
+        );
+
+        if (!hotel) {
+            return res.status(404).json({ message: "Hotel not exist!" });
+        }
+        res.status(200).json({ message: "Hotel updated successfully!", hotel });
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal Server Error!",
+            error: err.message,
+        });
+    }
+};
