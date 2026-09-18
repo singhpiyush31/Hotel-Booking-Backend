@@ -88,7 +88,7 @@ exports.getHotel = async (req, res) => {
         const totalPages = Math.ceil(totalHotels / limit);
 
         const hotel = await Hotel.find(filter)
-            .select("-owner -status -isActive")
+            .select("-owner -status -isActive -rejectionReason")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -99,6 +99,28 @@ exports.getHotel = async (req, res) => {
             page,
             limit,
             pages: totalPages,
+            total: totalHotels,
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal Server Error!",
+            error: err.message,
+        });
+    }
+};
+
+exports.getMyHotels = async (req, res) => {
+    try {
+        const loggedInUser = req.user._id;
+
+        const hotels = await Hotel.find({ owner: loggedInUser }).sort({
+            createdAt: -1,
+        });
+        const totalHotels = hotels.length;
+
+        res.status(200).json({
+            message: "My hotels: ",
+            hotels,
             total: totalHotels,
         });
     } catch (err) {
