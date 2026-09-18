@@ -180,3 +180,43 @@ exports.updateHotel = async (req, res) => {
         });
     }
 };
+
+exports.getAllHotels = async (req, res) => {
+    try {
+        const { page, limit, skip } = pagination(req.query);
+
+        const filter = {};
+
+        if (req.query.search) {
+            filter.name = searchRegex(req.query.search);
+        }
+        if (req.query.city) {
+            filter.city = searchRegex(req.query.city);
+        }
+        if (req.query.status) {
+            filter.status = searchRegex(req.query.status);
+        }
+
+        const hotel = await Hotel.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalHotels = await Hotel.countDocuments(filter);
+        const totalPages = Math.ceil(totalHotels / limit);
+
+        res.status(200).json({
+            message: "All Hotels: ",
+            hotel,
+            page,
+            limit,
+            total: totalHotels,
+            pages: totalPages,
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal Server Error!",
+            error: err.message,
+        });
+    }
+};
