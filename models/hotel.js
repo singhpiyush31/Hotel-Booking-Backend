@@ -52,7 +52,6 @@ const hotelSchema = new mongoose.Schema(
         rejectionReason: {
             type: String,
             trim: true,
-            minLength: 10,
             maxLength: 500,
         },
     },

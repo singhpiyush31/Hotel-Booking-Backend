@@ -10,5 +10,6 @@ hotelRouter.get("/all", userAuth, isAdmin, hotelController.getAllHotels);
 hotelRouter.get("/my", userAuth, isOwner, hotelController.getMyHotels);
 hotelRouter.get("/:hotelId", hotelController.getHotelById);
 hotelRouter.patch("/:hotelId", userAuth, isOwner, hotelController.updateHotel);
+hotelRouter.patch("/status/:hotelId", userAuth, isAdmin, hotelController.updateHotelStatus);
 
 module.exports = hotelRouter;

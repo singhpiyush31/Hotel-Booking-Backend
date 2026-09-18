@@ -220,3 +220,78 @@ exports.getAllHotels = async (req, res) => {
         });
     }
 };
+
+exports.updateHotelStatus = async (req, res) => {
+    try {
+        const hotelId = req.params.hotelId;
+        const { status, rejectionReason } = req.body;
+
+        if (status !== "Approved" && status !== "Rejected") {
+            return res.status(400).json({ message: "Invalid status" });
+        }
+        if (status === "Rejected" && !rejectionReason) {
+            return res.status(400).json({ message: "Rejection reason is required!" });
+        }
+        const update = { status, rejectionReason: "" };
+
+        if(status === "Rejected") {
+            update.rejectionReason = rejectionReason
+        }
+
+        const hotel = await Hotel.findByIdAndUpdate(
+            hotelId,
+            update,
+            { returnDocument: "after", runValidators: true },
+        ).populate("owner", "name email");
+
+        if(!hotel) {
+            return res.status(404).json({ message: "Hotel not exist!" });
+        }
+        const isApproved = status === "Approved";
+
+        await sendEmail({
+            to: hotel.owner.email,
+            subject: isApproved
+                ? `Congratulations! Your hotel listing is approved: ${hotel.name} (${hotel.city})`
+                : `Update on your hotel listing: ${hotel.name} was not approved`,
+            text: `Hello ${hotel.owner.name},
+
+${
+    isApproved
+        ? "Good news! Your hotel listing has been reviewed and approved. It is now live and visible to customers on Hotel Booking."
+        : "Thank you for submitting your hotel listing. After review, we are unable to approve it at this time."
+}
+
+Hotel Details:
+- Name: ${hotel.name}
+- City: ${hotel.city}
+- Address: ${hotel.address}
+- Status: ${hotel.status}
+- Hotel ID: ${hotel._id}
+${
+    isApproved
+        ? ""
+        : `
+Reason for Rejection:
+${rejectionReason}
+
+You can update your listing to address the above and submit it again for review.
+`
+}
+${
+    isApproved
+        ? "You can now log in to manage your rooms, pricing and availability."
+        : "If you have any questions about this decision, please reply to this email."
+}
+
+Thank you,
+Hotel Booking Team`,
+        });
+        res.status(200).json({ message: "Hotel status updated successfully!", hotel})
+    } catch (err) {
+        res.status(500).json({
+            message: "Internal Server Error!",
+            error: err.message,
+        });
+    }
+};
